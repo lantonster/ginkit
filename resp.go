@@ -38,16 +38,7 @@ func Response(c *gin.Context, data any, err error) {
 
 	// 如果存在错误，根据错误类型设置响应的状态码和消息。
 	if err != nil {
-		// 尝试从错误中获取自定义的状态码。
-		if code := cerrors.Code(err); code != 0 {
-			// 如果获取到自定义状态码，则使用之。
-			gResp.Code = code
-		} else {
-			// 如果没有自定义状态码，则使用内部服务器错误状态码。
-			gResp.Code = http.StatusInternalServerError
-		}
-
-		// 设置错误消息为错误的详细信息。
+		gResp.Code = cerrors.Code(err)
 		gResp.Message = err.Error()
 	}
 

@@ -6,7 +6,7 @@ toolchain go1.22.4
 
 require (
 	github.com/gin-gonic/gin v1.10.0
-	github.com/lantonster/cerrors v0.0.0-20240716050946-6f9e961bdce4
+	github.com/lantonster/cerrors v0.0.0-20240723142521-797eda32e67a
 )
 
 require (
