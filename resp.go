@@ -8,12 +8,6 @@ import (
 	"github.com/lantonster/cerrors"
 )
 
-// SwaggerResp 专门用于 swagger 注释生成 api docs 用
-type SwaggerResp struct {
-	Code    int    `json:"code"`    // 状态码
-	Message string `json:"message"` // 状态信息
-}
-
 // ginResp 最终接口返回
 type ginResp struct {
 	Code    int    `json:"code"`    // 状态码
