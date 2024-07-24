@@ -47,6 +47,7 @@ func ResponseInvalidParam(c *gin.Context, err error) {
 		Code:    http.StatusBadRequest,
 		Message: fmt.Sprintf("Invalid parameters in request: %v", err),
 	})
+	c.Abort()
 }
 
 // ResponsesUnauthorized 用于处理未授权（Unauthorized）的情况，它返回一个 401 错误响应。
@@ -55,4 +56,5 @@ func ResponsesUnauthorized(c *gin.Context, err error) {
 		Code:    cerrors.Code(err),
 		Message: fmt.Sprintf("Unauthorized: %v", err),
 	})
+	c.Abort()
 }
