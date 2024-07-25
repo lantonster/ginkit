@@ -10,23 +10,24 @@ import (
 
 // ginResp 最终接口返回
 type ginResp struct {
-	Code    int    `json:"code"`    // 状态码
-	Message string `json:"message"` // 状态信息
-	Data    any    `json:"data"`    // 数据
+	Code    int    `json:"code"`           // 状态码
+	Message string `json:"message"`        // 状态信息
+	Data    any    `json:"data,omitempty"` // 数据
 }
 
-// Response 处理 API 响应的函数。
-// 它封装了向 Gin 上下文发送响应的逻辑，无论是成功的结果还是错误的信息。
+// Response 函数用于处理请求响应。
+// 以 HTTP 状态码 200 进行响应，响应内容中的错误码由传入的 error 参数决定。
+// 若 error 为空，则响应默认的成功状态；若 error 不为空，根据 error 确定错误码和错误消息。
 //
 // 参数:
-//   - c *gin.Context: Gin 框架的上下文对象，用于向客户端发送响应。
-//   - data any: 成功时返回的数据，可以是任何类型。
-//   - err error: 函数执行过程中可能出现的错误，如果为 nil，则表示操作成功。
+//   - c: Gin 上下文对象，用于发送响应和控制请求处理流程
+//   - data: 要包含在响应中的数据
+//   - err: 若存在，用于确定响应中的错误码和错误消息；若为 nil，则表示无错误，为成功响应
 func Response(c *gin.Context, data any, err error) {
 	// 初始化一个 ginResp 对象，用于构建响应体。
 	gResp := ginResp{
 		Code:    0,
-		Message: "Succcess",
+		Message: "Success",
 		Data:    data,
 	}
 
@@ -36,25 +37,56 @@ func Response(c *gin.Context, data any, err error) {
 		gResp.Message = err.Error()
 	}
 
-	// 使用 JSON 格式发送响应，并终止当前请求的进一步处理。
+	// 使用 JSON 格式发送响应
 	c.JSON(http.StatusOK, gResp)
-	c.Abort()
 }
 
-// ResponseInvalidParam 用于处理请求参数无效的情况，它返回一个 400 错误响应。
+// ResponseInvalidParam 函数用于处理请求中参数无效的响应。
+// 该函数默认将响应的 HTTP 状态码设置为 400（Bad Request）。
+// 如果传入的错误携带有错误码，并且该错误码不为 0 和 500，将使用该错误码作为响应状态码。
+// 同时，会根据错误是否存在来设置响应消息。
+//
+// 参数:
+//   - c: Gin 上下文对象，用于发送响应和控制请求处理流程
+//   - err: 表示参数无效相关的错误，如果存在，用于确定响应的状态码和消息；如果为 nil，也会发送参数无效的默认响应
 func ResponseInvalidParam(c *gin.Context, err error) {
-	c.JSON(http.StatusBadRequest, ginResp{
-		Code:    http.StatusBadRequest,
-		Message: fmt.Sprintf("Invalid parameters in request: %v", err),
-	})
+	// 默认响应状态码为 400，如果错误携带有错误码并且不为 0 和 500 则使用错误码
+	code := http.StatusBadRequest
+	if c := cerrors.Code(err); c != 0 && c != http.StatusInternalServerError {
+		code = c
+	}
+
+	// 默认的响应消息，如果 error 不为空，补充错误信息
+	message := "Invalid parameters in request."
+	if err != nil {
+		message = fmt.Sprintf("Invalid parameters in request: %v.", err)
+	}
+
+	c.JSON(http.StatusBadRequest, ginResp{Code: code, Message: message})
 	c.Abort()
 }
 
-// ResponsesUnauthorized 用于处理未授权（Unauthorized）的情况，它返回一个 401 错误响应。
+// ResponsesUnauthorized 函数用于处理未授权的请求响应
+// 该函数默认将响应的 HTTP 状态码设置为 401（Unauthorized）。
+// 如果传入的错误携带有错误码，并且该错误码不为 0 和 500，将使用该错误码作为响应状态码。
+// 同时，会根据错误是否存在来设置响应消息。
+//
+// 参数:
+//   - c: Gin 上下文对象，用于发送响应和控制请求处理流程
+//   - err: 表示未授权相关的错误，如果存在，用于确定响应的状态码和消息；如果为 nil，也会发送未授权的默认响应
 func ResponsesUnauthorized(c *gin.Context, err error) {
-	c.JSON(http.StatusUnauthorized, ginResp{
-		Code:    cerrors.Code(err),
-		Message: fmt.Sprintf("Unauthorized: %v", err),
-	})
+	// 默认响应状态码为 401，如果错误携带有错误码并且不为 0 和 500 则使用错误码
+	code := http.StatusUnauthorized
+	if c := cerrors.Code(err); c != 0 && c != http.StatusInternalServerError {
+		code = c
+	}
+
+	// 默认的响应消息，如果 error 不为空，补充错误信息
+	message := "Unauthorized."
+	if err != nil {
+		message = fmt.Sprintf("Unauthorized: %v.", err)
+	}
+
+	c.JSON(http.StatusUnauthorized, ginResp{Code: code, Message: message})
 	c.Abort()
 }
